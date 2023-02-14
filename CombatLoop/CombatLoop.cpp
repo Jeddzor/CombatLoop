@@ -279,13 +279,11 @@ int RandomEncounter()
 
 void ShopTurn(Player& player)
 {
-	std::string ShopChoice;
+	int ShopChoice;
 	std::cout << "Enter 1 to take the rejuvination potion, 2 for the berserker amulet or 3 for neither.\n";
 	std::cin >> ShopChoice;
 
-	int ShopChoiceInt = std::stoi(ShopChoice);
-
-	switch (ShopChoiceInt)
+	switch (ShopChoice)
 	{
 	case 1:
 		player.HealthPool += 10;
