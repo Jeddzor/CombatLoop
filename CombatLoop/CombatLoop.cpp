@@ -120,7 +120,7 @@ void ChangeBiome(int biome)
 }
 
 /// <summary>
-/// THis could be simplified into Biome() function that has the type passed into it
+/// This could be simplified into Biome() function that has the type passed into it
 /// </summary>
 void Tundra() 
 {
