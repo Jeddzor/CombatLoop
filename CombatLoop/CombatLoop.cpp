@@ -94,6 +94,9 @@ int main()
 	std::cout << "Oh dear, you have died.";
 }
 
+/// <summary>
+/// Needs to have difficulty of encounters increased, and have escape return player to current biome overworld
+/// </summary>
 void Dungeon() 
 {
 	while (player.HealthPool > 0)
