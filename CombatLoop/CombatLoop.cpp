@@ -31,6 +31,13 @@ void PlayerTurn(Player& p, Encounter& e, std::string name);
 void EncounterTurn(Player& player, Encounter& encounter, std::string name);
 int RandomEncounter();
 void ShopTurn(Player& player);
+void Dungeon();
+void Forest();
+void Tundra();
+void Swamp();
+void Desert();
+
+void ChangeBiome();
 
 Player player = {
 		30,
@@ -78,6 +85,17 @@ int main()
 {
 	std::cout << "Your adventure has begun!\n";
 
+	while (player.HealthPool > 0)
+	{
+		std::cout << "You see you can head in any cardinal direction, North to the tundra, East to the swamp, South to the Desert or West to the Forest" << std::endl;
+		std::cout << "1 = North. 2 = East. 3 = South. 4 = West." << std::endl;
+	}
+	
+	std::cout << "Oh dear, you have died.";
+}
+
+void Dungeon() 
+{
 	while (player.HealthPool > 0)
 	{
 		std::cout << "You make your way deeper into the dungeon." << std::endl;
@@ -206,7 +224,6 @@ int main()
 			break;
 		}
 	}
-	std::cout << "Oh dear, you have died.";
 }
 
 void PlayerTurn(Player& player, Encounter& encounter, std::string name)
@@ -218,25 +235,43 @@ void PlayerTurn(Player& player, Encounter& encounter, std::string name)
 	std::cin >> choice;
 	int critroll = (1 + rand() % 100);
 
+	auto potionPointer = std::find(player.Inventory.begin(), player.Inventory.end(), "potion");
+
 	switch (choice)
 	{
 	case 1:
-		if (critroll < player.CritChance)
+		if ((rand() % 100) <= 5)
 		{
-			std::cout << "You land a vicious blow dealing critical damage! (" << (player.BasicAttackDamage*2) << " Damage)" << std::endl;
-			encounter.HealthPool -= (player.BasicAttackDamage * 2);
+			std::cout << "Your strike goes wide as the creature dodges nimbly out of the way! (0 Damage)" << std::endl;
 		}
 		else
 		{
-			int damageRoll = (rand()%player.BasicAttackDamage + )
-			std::cout << "You manage to land a hit! (" << player.BasicAttackDamage << " Damage)" << std::endl;
-			encounter.HealthPool -= player.BasicAttackDamage;
-			std::cout << "The " << name << " has " << encounter.HealthPool << " hp remaining!" << std::endl;
+			if (critroll < player.CritChance)
+			{
+				std::cout << "You land a vicious blow dealing critical damage! (" << ((player.BasicAttackDamage + player.StrengthBonus) * 2) << " Damage)" << std::endl;
+				encounter.HealthPool -= (player.BasicAttackDamage * 2);
+			}
+			else
+			{
+				int damageRoll = (1+rand()%player.BasicAttackDamage + player.StrengthBonus);
+				std::cout << "You manage to land a hit! (" << damageRoll << " Damage)" << std::endl;
+				encounter.HealthPool -= damageRoll;
+				std::cout << "The " << name << " has " << encounter.HealthPool << " hp remaining!" << std::endl;
+			}
 		}
+
 		break;
 	case 2:
-		std::cout << "You quickly down the contents of a potion bottle." << std::endl;
-		player.HealthPool += (5 + player.ExtraHealing);
+		if (potionPointer != player.Inventory.end())
+		{
+			std::cout << "You quickly down the contents of a potion bottle." << std::endl;
+			player.HealthPool += (5 + player.ExtraHealing);
+		}
+		else
+		{
+			std::cout << "You fumble around for a potion, but you have none left!" << std::endl;
+			PlayerTurn(player, encounter, name);
+		}
 		break;
 	case 3:
 		std::cout << "You just about manage to escape from the encounter." << std::endl;
@@ -268,8 +303,9 @@ void EncounterTurn(Player& player, Encounter& encounter, std::string name)
 	}
 	else
 	{
-		std::cout << "And scores a hit, dealing " << encounter.BasicAttackDamage << " damage!" << std::endl;
-		player.HealthPool -= encounter.BasicAttackDamage;
+		int damageRoll = ((1+rand() % encounter.BasicAttackDamage) - player.DefenseBonus);
+		std::cout << "And scores a hit, dealing " << damageRoll << " damage!" << std::endl;
+		player.HealthPool -= damageRoll;
 		std::cout << "You have " << player.HealthPool << " hp left!" << std::endl;
 	}
 }
