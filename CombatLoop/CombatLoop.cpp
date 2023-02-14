@@ -37,7 +37,7 @@ void Tundra();
 void Swamp();
 void Desert();
 
-void ChangeBiome();
+void ChangeBiome(int biome);
 
 Player player = {
 		30,
@@ -81,21 +81,87 @@ Encounter dragon = {
 			true
 };
 
+int Biome = 0;
+
 int main()
 {
+	
 	std::cout << "Your adventure has begun!\n";
 
 	while (player.HealthPool > 0)
 	{
 		std::cout << "You see you can head in any cardinal direction, North to the tundra, East to the swamp, South to the Desert or West to the Forest" << std::endl;
-		std::cout << "1 = North. 2 = East. 3 = South. 4 = West." << std::endl;
+		std::cout << "1 = Tundra. 2 = Swamp. 3 = Desert. 4 = Forest." << std::endl;
+		std::cin >> Biome;
+		ChangeBiome(Biome);
 	}
 	
 	std::cout << "Oh dear, you have died.";
 }
 
+void ChangeBiome(int biome)
+{
+	switch (biome)
+	{
+	case 1:
+		Tundra();
+		break;
+	case 2:
+		Swamp();
+		break;
+	case 3:
+		Desert();
+	case 4:
+		Forest();
+		break;
+	default:
+		break;
+	}
+}
+
 /// <summary>
-/// Needs to have difficulty of encounters increased, and have escape return player to current biome overworld
+/// THis could be simplified into Biome() function that has the type passed into it
+/// </summary>
+void Tundra() 
+{
+	int TundraChoice;
+	std::cout << "You find yourself in the frigid tundra. What would you like to do here?" << std::endl;
+	std::cout << "1: Rest and recuperate. 2: Investigate the tundra. 3: Change biome" << std::endl;
+	std::cin >> TundraChoice;
+
+	switch (TundraChoice)
+	{
+	case 1:
+		player.HealthPool = 30;
+		std::cout << "You take a moment to rest. (your health has been restored to full)" << std::endl;
+		break;
+	case 2:
+		int investigateRoll = (1 + rand() % 100);
+		if (investigateRoll > 89)
+		{
+			//Loot?
+		}
+		else if (10 < investigateRoll <= 89)
+		{
+			//standard encounter
+		}
+		else
+		{
+			//Discover the dungeon of this area
+		}
+		break;
+	case 3:
+		std::cout << "1 = Tundra. 2 = Swamp. 3 = Desert. 4 = Forest." << std::endl;
+		std::cin >> Biome;
+		ChangeBiome(Biome);
+		break;
+	default:
+		break;
+	}
+}
+
+/// <summary>
+/// Needs to have difficulty of encounters increased, and have escape return player to current biome overworld - add loot?
 /// </summary>
 void Dungeon() 
 {
