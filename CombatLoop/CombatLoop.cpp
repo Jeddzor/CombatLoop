@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <string>
+#include <list>
+#include <algorithm>
 
 struct Encounter
 {
@@ -16,10 +18,14 @@ struct Player
 {
 	int HealthPool;
 	int BasicAttackDamage;
-	int Money;
 	int CritChance;
 	int ExtraHealing;
+	std::list<std::string> Inventory;
+	int StrengthBonus;
+	int DefenseBonus;
 };
+
+
 
 void PlayerTurn(Player& p, Encounter& e, std::string name);
 void EncounterTurn(Player& player, Encounter& encounter, std::string name);
@@ -29,50 +35,47 @@ void ShopTurn(Player& player);
 Player player = {
 		30,
 		3,
-		5,
+		0,
+		0,
+		std::list<std::string>{},
 		0,
 		0
 };
-Encounter shop = {
-			0,
-			100,
-			10,
-			false
-};
+
+
 Encounter rat = {
 			1,
 			3,
-			1,
+			2,
 			true
 };
 Encounter cow = {
 			2,
 			5,
-			2,
+			3,
 			true
 };
 Encounter camel = {
 			3,
 			10,
-			3,
+			5,
 			true
 };
 Encounter rival = {
 4,
 10,
-3,
+8,
 true
 };
 Encounter dragon = {
 			5,
 			20,
-			5,
+			15,
 			true
 };
 
 int main()
 {
-
 	std::cout << "Your adventure has begun!\n";
 
 	while (player.HealthPool > 0)
@@ -225,6 +228,7 @@ void PlayerTurn(Player& player, Encounter& encounter, std::string name)
 		}
 		else
 		{
+			int damageRoll = (rand()%player.BasicAttackDamage + )
 			std::cout << "You manage to land a hit! (" << player.BasicAttackDamage << " Damage)" << std::endl;
 			encounter.HealthPool -= player.BasicAttackDamage;
 			std::cout << "The " << name << " has " << encounter.HealthPool << " hp remaining!" << std::endl;
