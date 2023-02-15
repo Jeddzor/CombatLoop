@@ -32,11 +32,8 @@ void EncounterTurn(Player& player, Encounter& encounter, std::string name);
 int RandomEncounter();
 void ShopTurn(Player& player);
 void Dungeon();
-void Forest();
-void Tundra();
-void Swamp();
-void Desert();
-
+void BiomeAction(std::string biomeName);
+void EncounterRoll();
 void ChangeBiome(int biome);
 
 Player player = {
@@ -104,50 +101,52 @@ void ChangeBiome(int biome)
 	switch (biome)
 	{
 	case 1:
-		Tundra();
+		BiomeAction("Tundra");
 		break;
 	case 2:
-		Swamp();
+		BiomeAction("Swamp");
 		break;
 	case 3:
-		Desert();
+		BiomeAction("Desert");
 	case 4:
-		Forest();
+		BiomeAction("Forest");
 		break;
 	default:
 		break;
 	}
 }
 
-/// <summary>
-/// This could be simplified into Biome() function that has the type passed into it
-/// </summary>
-void Tundra() 
+void BiomeAction(std::string biomeName)
 {
-	int TundraChoice;
-	std::cout << "You find yourself in the frigid tundra. What would you like to do here?" << std::endl;
-	std::cout << "1: Rest and recuperate. 2: Investigate the tundra. 3: Change biome" << std::endl;
-	std::cin >> TundraChoice;
+	int Choice;
+	std::cout << "You find yourself in the " << biomeName << ". What would you like to do here?" << std::endl;
+	std::cout << "1: Rest and recuperate. 2: Investigate the " << biomeName << ". 3: Change biome" << std::endl;
+	std::cin >> Choice;
 
-	switch (TundraChoice)
+	int investigateRoll = (1 + rand() % 100);
+
+	switch (Choice)
 	{
 	case 1:
 		player.HealthPool = 30;
 		std::cout << "You take a moment to rest. (your health has been restored to full)" << std::endl;
 		break;
 	case 2:
-		int investigateRoll = (1 + rand() % 100);
+
 		if (investigateRoll > 89)
 		{
 			//Loot?
+			ShopTurn(player);
 		}
 		else if (10 < investigateRoll <= 89)
 		{
 			//standard encounter
+			EncounterRoll();
 		}
 		else
 		{
 			//Discover the dungeon of this area
+			Dungeon();
 		}
 		break;
 	case 3:
@@ -160,138 +159,146 @@ void Tundra()
 	}
 }
 
+
 /// <summary>
 /// Needs to have difficulty of encounters increased, and have escape return player to current biome overworld - add loot?
 /// </summary>
 void Dungeon() 
 {
+	std::cout << "You stumble across the entrance to an underground dungeon. Do you wish to enter?" << std::endl;
+	std::cout << "1: Yes, i'm fearless! 2: Nope, that looks dangerous." << std::endl;
 	while (player.HealthPool > 0)
 	{
 		std::cout << "You make your way deeper into the dungeon." << std::endl;
 		std::cout << std::endl;
 
-		switch (RandomEncounter())
+		
+	}
+}
+
+void EncounterRoll() 
+{
+	switch (RandomEncounter())
+	{
+	case 0:
+		//Shop encounter           
+		std::cout << "You stumble across a strange altar, pulsing in the dark. Atop it's black marble surface lies an amulet and a potion.\n";
+		std::cout << "Rejuvination potion (Increases amount healed).  Berserker's Amulet (Adds 10% crit chance).\n";
+		ShopTurn(player);
+		break;
+	case 1:
+		if (rat.HealthPool <= 0)
 		{
-		case 0:
-			//Shop encounter           
-			std::cout << "You stumble across a strange altar, pulsing in the dark. Atop it's black marble surface lies an amulet and a potion.\n";
-			std::cout << "Rejuvination potion (Increases amount healed).  Berserker's Amulet (Adds 10% crit chance).\n";
-			ShopTurn(player);
-			break;
-		case 1:
+			rat.HealthPool = 3;
+		}
+		//Rat encounter           
+		while (rat.HealthPool >= 1)
+		{
+			PlayerTurn(player, rat, "rat");
 			if (rat.HealthPool <= 0)
 			{
-				rat.HealthPool = 3;
+				std::cout << "You have slain the beast!" << std::endl;
+				break;
 			}
-			//Rat encounter           
-			while (rat.HealthPool >= 1)
+			else
 			{
-				PlayerTurn(player, rat, "rat");
-				if (rat.HealthPool <= 0)
-				{
-					std::cout << "You have slain the beast!" << std::endl;
+				EncounterTurn(player, rat, "rat");
+				if (player.HealthPool <= 0)
 					break;
-				}
-				else
-				{
-					EncounterTurn(player, rat, "rat");
-					if (player.HealthPool <= 0)
-						break;
-				}
 			}
-			break;
-		case 2:
-			//Cow encounter
+		}
+		break;
+	case 2:
+		//Cow encounter
+		if (cow.HealthPool <= 0)
+		{
+			cow.HealthPool = 5;
+		}
+		while (cow.HealthPool >= 1)
+		{
+			PlayerTurn(player, cow, "cow");
 			if (cow.HealthPool <= 0)
 			{
-				cow.HealthPool = 5;
+				std::cout << "You have slain the beast!" << std::endl;
+				break;
 			}
-			while (cow.HealthPool >= 1)
+			else
 			{
-				PlayerTurn(player, cow, "cow");
-				if (cow.HealthPool <= 0)
-				{
-					std::cout << "You have slain the beast!" << std::endl;
+				EncounterTurn(player, cow, "cow");
+				if (player.HealthPool <= 0)
 					break;
-				}
-				else
-				{
-					EncounterTurn(player, cow, "cow");
-					if (player.HealthPool <= 0)
-						break;
-				}
 			}
-			break;
-		case 3:
+		}
+		break;
+	case 3:
+		if (camel.HealthPool <= 0)
+		{
+			camel.HealthPool = 10;
+		}
+		//Angry camel encounter
+
+		while (camel.HealthPool >= 1)
+		{
+			PlayerTurn(player, camel, "camel");
 			if (camel.HealthPool <= 0)
 			{
-				camel.HealthPool = 10;
+				std::cout << "You have slain the beast!" << std::endl;
+				break;
 			}
-			//Angry camel encounter
-
-			while (camel.HealthPool >= 1)
+			else
 			{
-				PlayerTurn(player, camel, "camel");
-				if (camel.HealthPool <= 0)
-				{
-					std::cout << "You have slain the beast!" << std::endl;
+				EncounterTurn(player, camel, "camel");
+				if (player.HealthPool <= 0)
 					break;
-				}
-				else
-				{
-					EncounterTurn(player, camel, "camel");
-					if (player.HealthPool <= 0)
-						break;
-				}
 			}
-			break;
-		case 4:
+		}
+		break;
+	case 4:
+		if (rival.HealthPool <= 0)
+		{
+			rival.HealthPool = 10;
+		}
+		//Rival adventurer encounter
+
+		while (rival.HealthPool >= 1)
+		{
+			PlayerTurn(player, rival, "rival");
 			if (rival.HealthPool <= 0)
 			{
-				rival.HealthPool = 10;
+				std::cout << "You have slain the beast!" << std::endl;
+				break;
 			}
-			//Rival adventurer encounter
-
-			while (rival.HealthPool >= 1)
+			else
 			{
-				PlayerTurn(player, rival, "rival");
-				if (rival.HealthPool <= 0)
-				{
-					std::cout << "You have slain the beast!" << std::endl;
+				EncounterTurn(player, rival, "rival");
+				if (player.HealthPool <= 0)
 					break;
-				}
-				else
-				{
-					EncounterTurn(player, rival, "rival");
-					if (player.HealthPool <= 0)
-						break;
-				}
 			}
-			break;
-		case 5:
+		}
+		break;
+	case 5:
+		if (dragon.HealthPool <= 0)
+		{
+			dragon.HealthPool = 20;
+		}
+		//Dragon encounter
+
+		while (dragon.HealthPool >= 1)
+		{
+			PlayerTurn(player, dragon, "dragon");
 			if (dragon.HealthPool <= 0)
 			{
-				dragon.HealthPool = 20;
+				std::cout << "You have slain the beast!" << std::endl;
+				break;
 			}
-			//Dragon encounter
-
-			while (dragon.HealthPool >= 1)
+			else
 			{
-				PlayerTurn(player, dragon, "dragon");
-				if (dragon.HealthPool <= 0)
-				{
-					std::cout << "You have slain the beast!" << std::endl;
+				EncounterTurn(player, dragon, "dragon");
+				if (player.HealthPool <= 0)
 					break;
-				}
-				else
-				{
-					EncounterTurn(player, dragon, "dragon");
-					if (player.HealthPool <= 0)
-						break;
-				}
 			}
-			break;
 		}
+		break;
 	}
 }
 
