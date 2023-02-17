@@ -27,17 +27,60 @@ struct Player
 
 
 
-void PlayerTurn(Player& p, Encounter& e, std::string name);
+void PlayerTurn(Player& p, Encounter& e, std::string name, std::string biome);
 void EncounterTurn(Player& player, Encounter& encounter, std::string name);
 int RandomEncounter();
 void ShopTurn(Player& player);
-void Dungeon();
-void Forest();
-void Tundra();
-void Swamp();
-void Desert();
+void Dungeon(std::string biome);
+void Overworld(std::string biome);
+void EncounterRoll(std::string biome);
+void LootRoll();
 
 void ChangeBiome(int biome);
+
+class DungeonMob {
+	int hp;
+	int maxDamage;
+	int defenseBonus;
+
+public:
+	DungeonMob(int _hp, int dmg, int defense)
+	{
+		hp = _hp;
+		maxDamage = dmg;
+		defenseBonus = defense;
+	}
+
+	void SetHp(int _hp)
+	{
+		hp = _hp;
+	}
+
+	int GetHp()
+	{
+		return hp;
+	}
+
+	void SetDamage(int dmg)
+	{
+		maxDamage = dmg;
+	}
+
+	int GetDamage()
+	{
+		return maxDamage;
+	}
+
+	void SetDefense(int defense)
+	{
+		defenseBonus = defense;
+	}
+
+	int GetDefense()
+	{
+		return defenseBonus;
+	}
+};
 
 Player player = {
 		30,
@@ -85,7 +128,7 @@ int Biome = 0;
 
 int main()
 {
-	
+
 	std::cout << "Your adventure has begun!\n";
 
 	while (player.HealthPool > 0)
@@ -95,7 +138,7 @@ int main()
 		std::cin >> Biome;
 		ChangeBiome(Biome);
 	}
-	
+
 	std::cout << "Oh dear, you have died.";
 }
 
@@ -104,50 +147,59 @@ void ChangeBiome(int biome)
 	switch (biome)
 	{
 	case 1:
-		Tundra();
+		Dungeon("Tundra");
+		Overworld("Tundra");
 		break;
 	case 2:
-		Swamp();
+		Overworld("Swamp");
 		break;
 	case 3:
-		Desert();
+		Overworld("Desert");
+		break;
 	case 4:
-		Forest();
+		Overworld("Forest");
 		break;
 	default:
 		break;
 	}
 }
 
-/// <summary>
-/// This could be simplified into Biome() function that has the type passed into it
-/// </summary>
-void Tundra() 
-{
-	int TundraChoice;
-	std::cout << "You find yourself in the frigid tundra. What would you like to do here?" << std::endl;
-	std::cout << "1: Rest and recuperate. 2: Investigate the tundra. 3: Change biome" << std::endl;
-	std::cin >> TundraChoice;
 
-	switch (TundraChoice)
+void Overworld(std::string biome)
+{
+	int Choice;
+	std::cout << "You find yourself in the " << biome << ". What would you like to do here?" << std::endl;
+	std::cout << "1: Rest and recuperate. 2: Investigate the " << biome << ". 3: Change biome" << std::endl;
+	std::cin >> Choice;
+
+	int investigateRoll = (1 + rand() % 100);
+
+	switch (Choice)
 	{
 	case 1:
 		player.HealthPool = 30;
 		std::cout << "You take a moment to rest. (your health has been restored to full)" << std::endl;
+		Overworld(biome);
 		break;
 	case 2:
-		int investigateRoll = (1 + rand() % 100);
+
 		if (investigateRoll > 89)
 		{
+			std::cout << "As you look around something shiny in the undergrowth catches your eye." << std::endl;
 			//Loot?
+			LootRoll();
+			Overworld(biome);
 		}
-		else if (10 < investigateRoll <= 89)
+		else if (10 < investigateRoll < 90)
 		{
 			//standard encounter
+			EncounterRoll(biome);
+			Overworld(biome);
 		}
 		else
 		{
 			//Discover the dungeon of this area
+			Dungeon(biome);
 		}
 		break;
 	case 3:
@@ -160,11 +212,163 @@ void Tundra()
 	}
 }
 
-/// <summary>
-/// Needs to have difficulty of encounters increased, and have escape return player to current biome overworld - add loot?
-/// </summary>
-void Dungeon() 
+void EncounterRoll(std::string biome)
 {
+
+	std::cout << "Your investigation has lead you into an encounter." << std::endl;
+	std::cout << std::endl;
+
+	switch (RandomEncounter())
+	{
+	case 0:
+		//Shop encounter           
+		std::cout << "You stumble across a strange altar, pulsing in the dark. Atop it's black marble surface lies an amulet and a potion.\n";
+		std::cout << "Rejuvination potion (Increases amount healed).  Berserker's Amulet (Adds 10% crit chance).\n";
+		ShopTurn(player);
+		break;
+	case 1:
+		if (rat.HealthPool <= 0)
+		{
+			rat.HealthPool = 3;
+		}
+		//Rat encounter           
+		while (rat.HealthPool >= 1)
+		{
+			PlayerTurn(player, rat, "rat", biome);
+			if (rat.HealthPool <= 0)
+			{
+				std::cout << "You have slain the beast!" << std::endl;
+				break;
+			}
+			else
+			{
+				EncounterTurn(player, rat, "rat");
+				if (player.HealthPool <= 0)
+					break;
+			}
+		}
+		break;
+	case 2:
+		//Cow encounter
+		if (cow.HealthPool <= 0)
+		{
+			cow.HealthPool = 5;
+		}
+		while (cow.HealthPool >= 1)
+		{
+			PlayerTurn(player, cow, "cow", biome);
+			if (cow.HealthPool <= 0)
+			{
+				std::cout << "You have slain the beast!" << std::endl;
+				break;
+			}
+			else
+			{
+				EncounterTurn(player, cow, "cow");
+				if (player.HealthPool <= 0)
+					break;
+			}
+		}
+		break;
+	case 3:
+		if (camel.HealthPool <= 0)
+		{
+			camel.HealthPool = 10;
+		}
+		//Angry camel encounter
+
+		while (camel.HealthPool >= 1)
+		{
+			PlayerTurn(player, camel, "camel", biome);
+			if (camel.HealthPool <= 0)
+			{
+				std::cout << "You have slain the beast!" << std::endl;
+				break;
+			}
+			else
+			{
+				EncounterTurn(player, camel, "camel");
+				if (player.HealthPool <= 0)
+					break;
+			}
+		}
+		break;
+	case 4:
+		if (rival.HealthPool <= 0)
+		{
+			rival.HealthPool = 10;
+		}
+		//Rival adventurer encounter
+
+		while (rival.HealthPool >= 1)
+		{
+			PlayerTurn(player, rival, "rival", biome);
+			if (rival.HealthPool <= 0)
+			{
+				std::cout << "You have slain the beast!" << std::endl;
+				break;
+			}
+			else
+			{
+				EncounterTurn(player, rival, "rival");
+				if (player.HealthPool <= 0)
+					break;
+			}
+		}
+		break;
+	case 5:
+		if (dragon.HealthPool <= 0)
+		{
+			dragon.HealthPool = 20;
+		}
+		//Dragon encounter
+
+		while (dragon.HealthPool >= 1)
+		{
+			PlayerTurn(player, dragon, "dragon", biome);
+			if (dragon.HealthPool <= 0)
+			{
+				std::cout << "You have slain the beast!" << std::endl;
+				break;
+			}
+			else
+			{
+				EncounterTurn(player, dragon, "dragon");
+				if (player.HealthPool <= 0)
+					break;
+			}
+		}
+		break;
+	}
+}
+
+void LootRoll()
+{
+	int roll = (1 + rand() % 2);
+
+	switch (roll)
+	{
+	case 1:
+		std::cout << "You find a small rune, glowing an angry red. (+3 Max damage)" << std::endl;
+		player.BasicAttackDamage += 3;
+		break;
+	case 2:
+		std::cout << "You find a ShieldShell. (+2 Damage resistance)" << std::endl;
+		player.DefenseBonus += 2;
+		break;
+	}
+}
+
+void DungeonTurn(DungeonMob& mob, Player& player, std::string biome)
+{
+
+}
+
+void Dungeon(std::string biome)
+{
+	int DungeonEncounterCounter = 0;
+	DungeonMob mob(10, 5, 0);
+
 	while (player.HealthPool > 0)
 	{
 		std::cout << "You make your way deeper into the dungeon." << std::endl;
@@ -186,7 +390,7 @@ void Dungeon()
 			//Rat encounter           
 			while (rat.HealthPool >= 1)
 			{
-				PlayerTurn(player, rat, "rat");
+				PlayerTurn(player, rat, "rat", biome);
 				if (rat.HealthPool <= 0)
 				{
 					std::cout << "You have slain the beast!" << std::endl;
@@ -208,7 +412,7 @@ void Dungeon()
 			}
 			while (cow.HealthPool >= 1)
 			{
-				PlayerTurn(player, cow, "cow");
+				PlayerTurn(player, cow, "cow", biome);
 				if (cow.HealthPool <= 0)
 				{
 					std::cout << "You have slain the beast!" << std::endl;
@@ -231,7 +435,7 @@ void Dungeon()
 
 			while (camel.HealthPool >= 1)
 			{
-				PlayerTurn(player, camel, "camel");
+				PlayerTurn(player, camel, "camel", biome);
 				if (camel.HealthPool <= 0)
 				{
 					std::cout << "You have slain the beast!" << std::endl;
@@ -254,7 +458,7 @@ void Dungeon()
 
 			while (rival.HealthPool >= 1)
 			{
-				PlayerTurn(player, rival, "rival");
+				PlayerTurn(player, rival, "rival", biome);
 				if (rival.HealthPool <= 0)
 				{
 					std::cout << "You have slain the beast!" << std::endl;
@@ -277,7 +481,7 @@ void Dungeon()
 
 			while (dragon.HealthPool >= 1)
 			{
-				PlayerTurn(player, dragon, "dragon");
+				PlayerTurn(player, dragon, "dragon", biome);
 				if (dragon.HealthPool <= 0)
 				{
 					std::cout << "You have slain the beast!" << std::endl;
@@ -295,7 +499,75 @@ void Dungeon()
 	}
 }
 
-void PlayerTurn(Player& player, Encounter& encounter, std::string name)
+//Dungeon Player Turn
+void PlayerTurn(Player& player, DungeonMob& mob, std::string name, std::string biome)
+{
+	//Player input determines actions taken in player turn
+	std::cout << "You have come across a " << name << " (" << mob.GetHp() << " HP)" << std::endl;
+	std::cout << "Press 1 to Fight, 2 to drink a health potion, 3 to run away, or 4 to check your current status." << std::endl;
+	int choice;
+	std::cin >> choice;
+	int critroll = (1 + rand() % 100);
+
+	auto potionPointer = std::find(player.Inventory.begin(), player.Inventory.end(), "potion");
+
+	switch (choice)
+	{
+	case 1:
+		if ((rand() % 100) <= 5)
+		{
+			std::cout << "Your strike goes wide as the creature dodges nimbly out of the way! (0 Damage)" << std::endl;
+		}
+		else
+		{
+			if (critroll < player.CritChance)
+			{
+				std::cout << "You land a vicious blow dealing critical damage! (" << ((player.BasicAttackDamage + player.StrengthBonus) * 2) << " Damage)" << std::endl;
+				int mobHp = mob.GetHp();
+				mob.SetHp(mobHp -= player.BasicAttackDamage * 2);
+			}
+			else
+			{
+				int damageRoll = (1 + rand() % player.BasicAttackDamage + player.StrengthBonus);
+				std::cout << "You manage to land a hit! (" << damageRoll << " Damage)" << std::endl;
+				int mobHp = mob.GetHp();
+				mob.SetHp(mobHp -= damageRoll);
+				std::cout << "The " << name << " has " << mob.GetHp() << " hp remaining!" << std::endl;
+			}
+		}
+
+		break;
+	case 2:
+		if (potionPointer != player.Inventory.end())
+		{
+			std::cout << "You quickly down the contents of a potion bottle." << std::endl;
+			player.HealthPool += (5 + player.ExtraHealing);
+		}
+		else
+		{
+			std::cout << "You fumble around for a potion, but you have none left!" << std::endl;
+			PlayerTurn(player, mob, name, biome);
+		}
+		break;
+	case 3:
+		std::cout << "You just about manage to escape from the encounter." << std::endl;
+		Overworld(biome);
+		break;
+	case 4:
+		std::cout << "Current Health: " << player.HealthPool << std::endl;
+		std::cout << "Crit chance: " << player.CritChance << std::endl;
+		std::cout << "Additional healing recieved: " << player.ExtraHealing << std::endl;
+		PlayerTurn(player, mob, name, biome);
+		break;
+	default:
+		std::cout << "Input unrecognized, please enter 1, 2 or 3" << std::endl;
+		PlayerTurn(player, mob, name, biome);
+		break;
+	}
+}
+
+//Overworld player turn
+void PlayerTurn(Player& player, Encounter& encounter, std::string name, std::string biome)
 {
 	//Player input determines actions taken in player turn
 	std::cout << "You have come across a " << name << " (" << encounter.HealthPool << " HP)" << std::endl;
@@ -322,7 +594,7 @@ void PlayerTurn(Player& player, Encounter& encounter, std::string name)
 			}
 			else
 			{
-				int damageRoll = (1+rand()%player.BasicAttackDamage + player.StrengthBonus);
+				int damageRoll = (1 + rand() % player.BasicAttackDamage + player.StrengthBonus);
 				std::cout << "You manage to land a hit! (" << damageRoll << " Damage)" << std::endl;
 				encounter.HealthPool -= damageRoll;
 				std::cout << "The " << name << " has " << encounter.HealthPool << " hp remaining!" << std::endl;
@@ -339,21 +611,22 @@ void PlayerTurn(Player& player, Encounter& encounter, std::string name)
 		else
 		{
 			std::cout << "You fumble around for a potion, but you have none left!" << std::endl;
-			PlayerTurn(player, encounter, name);
+			PlayerTurn(player, encounter, name, biome);
 		}
 		break;
 	case 3:
 		std::cout << "You just about manage to escape from the encounter." << std::endl;
+		Overworld(biome);
 		break;
 	case 4:
 		std::cout << "Current Health: " << player.HealthPool << std::endl;
 		std::cout << "Crit chance: " << player.CritChance << std::endl;
 		std::cout << "Additional healing recieved: " << player.ExtraHealing << std::endl;
-		PlayerTurn(player, encounter, name);
+		PlayerTurn(player, encounter, name, biome);
 		break;
 	default:
 		std::cout << "Input unrecognized, please enter 1, 2 or 3" << std::endl;
-		PlayerTurn(player, encounter, name);
+		PlayerTurn(player, encounter, name, biome);
 		break;
 	}
 }
@@ -372,7 +645,7 @@ void EncounterTurn(Player& player, Encounter& encounter, std::string name)
 	}
 	else
 	{
-		int damageRoll = ((1+rand() % encounter.BasicAttackDamage) - player.DefenseBonus);
+		int damageRoll = ((1 + rand() % encounter.BasicAttackDamage) - player.DefenseBonus);
 		std::cout << "And scores a hit, dealing " << damageRoll << " damage!" << std::endl;
 		player.HealthPool -= damageRoll;
 		std::cout << "You have " << player.HealthPool << " hp left!" << std::endl;
